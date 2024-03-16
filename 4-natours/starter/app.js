@@ -1,6 +1,9 @@
 const express = require("express");
 const morgan = require("morgan");
 
+const AppError = require("./utils/appError");
+const globalErrorHandler = require("./controllers/errorController");
+
 const tourRouter = require("./routes/tourRoutes"); //importing all the routes
 const userRouter = require("./routes/userRoutes"); //importing all the routes
 
@@ -33,5 +36,13 @@ app.use(express.static(`${__dirname}/public/`)); // Used for serving the static 
 // app.get("/", getInitialPage);
 app.use("/api/v1/tours", tourRouter); // Mouting the routes
 app.use("/api/v1/users", userRouter); // Mouting the routes
+
+//Handling for Error Route after all the routes [Always add in bottom]
+app.all("*", (req, res, next) => {
+  next(new AppError(`Can't Find ${req.originalUrl}`, 404));
+});
+
+// Implementing a Global Error Handling Middleware
+app.use(globalErrorHandler);
 
 module.exports = app;
