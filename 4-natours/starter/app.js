@@ -2,6 +2,9 @@ const express = require("express");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
+const mongoSantize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
 
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
@@ -27,6 +30,26 @@ const limiter = rateLimit({
 app.use("/api", limiter); // It means it will be only applied to all routes starting with /api as endpoint
 
 app.use(express.json({ limit: "10kb" })); // Middleware for post method (used to parse the data from the body)
+
+// Data Santization against NOSQL Query Injection
+app.use(mongoSantize());
+
+// Data Santization against XSS or Cross Site Scripting Attacks
+app.use(xss());
+
+// Prevents Paramter Pollution
+app.use(
+  hpp({
+    whitelist: [
+      "duration",
+      "ratingsQuantity",
+      "ratingsAverage",
+      "maxGroupSize",
+      "difficulty",
+      "price",
+    ],
+  })
+);
 
 app.use(express.static(`${__dirname}/public/`)); // Used for serving the static files
 
